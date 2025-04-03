@@ -1,6 +1,6 @@
 ﻿namespace OptimizationMethods.Graphs
 {
-    internal class Vertex
+    public class Vertex
     {
         public int Id { get; }
         public List<int> Neighbors { get; }

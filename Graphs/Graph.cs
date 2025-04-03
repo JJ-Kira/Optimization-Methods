@@ -1,11 +1,32 @@
-﻿namespace OptimizationMethods.Graphs
+﻿using System.Text;
+
+namespace OptimizationMethods.Graphs
 {
-    internal class Graph
+    /// <summary>
+    /// Represents a graph using an adjacency list.
+    /// Supports both directed and undirected graphs.
+    /// </summary>
+    public class Graph
     {
+        /// <summary>
+        /// Indicates whether the graph is directed.
+        /// </summary>
         public bool IsDirected { get; }
+
+        /// <summary>
+        /// Dictionary of vertices, indexed by vertex ID.
+        /// </summary>
         public Dictionary<int, Vertex> Vertices { get; }
+
+        /// <summary>
+        /// List of all edges in the graph.
+        /// </summary>
         public List<Edge> Edges { get; }
 
+        /// <summary>
+        /// Initializes a new graph as directed or undirected.
+        /// </summary>
+        /// <param name="isDirected">True if the graph is directed.</param>
         public Graph(bool isDirected)
         {
             IsDirected = isDirected;
@@ -13,6 +34,10 @@
             Edges = new List<Edge>();
         }
 
+        /// <summary>
+        /// Adds an edge to the graph. Also ensures the vertices are created and linked.
+        /// For undirected graphs, adds the reverse edge as well.
+        /// </summary>
         public void AddEdge(int from, int to, int weight = 1)
         {
             if (!Vertices.ContainsKey(from))
@@ -30,6 +55,9 @@
             }
         }
 
+        /// <summary>
+        /// Prints the graph to the console in a readable adjacency list format.
+        /// </summary>
         public void PrintGraph()
         {
             Console.WriteLine(IsDirected ? "Directed Graph:" : "Undirected Graph:");
@@ -37,7 +65,59 @@
                 Console.WriteLine(v);
         }
 
+        /// <summary>
+        /// Returns the total number of vertices in the graph.
+        /// </summary>
         public int VertexCount => Vertices.Count;
+
+        /// <summary>
+        /// Returns the number of edges in the graph (undirected counted only once).
+        /// </summary>
         public int EdgeCount => IsDirected ? Edges.Count : Edges.Count / 2;
+
+        /// <summary>
+        /// Checks if the graph is connected using DFS traversal.
+        /// Ignores isolated vertices (those with no neighbors).
+        /// 
+        /// Useful for algorithms such as Eulerian cycle detection.
+        /// </summary>
+        public bool IsConnected()
+        {
+            var visited = new HashSet<int>();
+            int start = Vertices.Values.FirstOrDefault(v => v.Neighbors.Count > 0)?.Id ?? -1;
+
+            if (start == -1)
+                return true; // No edges, considered trivially connected
+
+            DFS(start, visited);
+
+            // Ensure all vertices with edges are reachable
+            return Vertices.Values
+                           .Where(v => v.Neighbors.Count > 0)
+                           .All(v => visited.Contains(v.Id));
+        }
+
+        /// <summary>
+        /// Helper method to perform depth-first search.
+        /// </summary>
+        private void DFS(int current, HashSet<int> visited)
+        {
+            visited.Add(current);
+            foreach (var neighbor in Vertices[current].Neighbors)
+            {
+                if (!visited.Contains(neighbor))
+                    DFS(neighbor, visited);
+            }
+        }
+
+        /// <summary>
+        /// Checks if all vertices in the graph have even degrees.
+        /// 
+        /// This is a necessary condition for an Eulerian cycle in an undirected graph.
+        /// </summary>
+        public bool AllVerticesHaveEvenDegree()
+        {
+            return Vertices.Values.All(v => v.Neighbors.Count % 2 == 0);
+        }
     }
 }
