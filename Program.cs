@@ -19,5 +19,11 @@ class Program
         graph = GraphParser.LoadGraphFromFile("TestData/mm-graph.txt");
         graph.PrintGraph();
         MaximumMatching.RunAndPrint(graph);
+
+        Console.WriteLine("-----------------");
+
+        graph = GraphParser.LoadGraphFromFile("TestData/hungarian-graph.txt");
+        graph.PrintGraph();
+        HungarianAlgorithm.Run(graph);
     }
 }

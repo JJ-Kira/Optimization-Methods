@@ -1,4 +1,9 @@
 ﻿using OptimizationMethods.Graphs;
+using System.Diagnostics;
+using System.Net;
+using System.Reflection.Emit;
+using System.Reflection.PortableExecutable;
+using System.Threading.Channels;
 
 namespace OptimizationMethods.Algorithms
 {
@@ -27,7 +32,16 @@ namespace OptimizationMethods.Algorithms
     /// 5)         M = M ⊕ p
     /// 6) until p = NIL
     /// 7) return M
-
+    ///
+    /// Although both algorithms rely on finding augmenting paths, 
+    /// we can't directly reuse MaximumMatching because:
+    /// Hungarian uses an equality graph Gl, where edges must satisfy l(u) + l(v) == c(u, v). 
+    /// This graph changes after each label update and is not part of the original graph.
+    /// Hungarian requires tighter control: 
+    /// it builds alternating trees, tracks labels, and modifies matchings dynamically
+    /// — beyond what MaximumMatching supports.
+    /// While conceptually similar, Hungarian needs a customized DFS and matching logic 
+    /// tailored to label conditions and equality constraints.
     /// </summary>
     public static class MaximumMatching
     {

@@ -182,5 +182,17 @@ namespace OptimizationMethods.Graphs
             return true;
         }
 
+        /// <summary>
+        /// Returns the weight of the edge from one node to another.
+        /// If no such edge exists, throws an exception.
+        /// </summary>
+        public int GetEdgeWeight(int from, int to)
+        {
+            var edge = Edges.FirstOrDefault(e => e.From == from && e.To == to);
+            if (edge == null)
+                throw new InvalidOperationException($"Edge {from} → {to} not found.");
+            return edge.Weight;
+        }
+
     }
 }
