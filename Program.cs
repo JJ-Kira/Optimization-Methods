@@ -1,4 +1,8 @@
-﻿using OptimizationMethods.Algorithms;
+﻿#define EULER
+#define MM
+#define HUNGARY
+
+using OptimizationMethods.Algorithms;
 using OptimizationMethods.Graphs;
 
 class Program
@@ -6,24 +10,30 @@ class Program
     static void Main(string[] args)
     {
         // Euler Cycle
-        var graph = GraphParser.LoadGraphFromFile("TestData/euler-yes.txt");
-        graph.PrintGraph();
-        EulerCycle.RunAndPrint(graph);
+#if EULER
+        var graphE = GraphParser.LoadGraphFromFile("TestData/euler-yes.txt");
+        graphE.PrintGraph();
+        EulerCycle.RunAndPrint(graphE);
         Console.WriteLine("----");
-        graph = GraphParser.LoadGraphFromFile("TestData/euler-no.txt");
-        graph.PrintGraph();
-        EulerCycle.RunAndPrint(graph);
+        graphE = GraphParser.LoadGraphFromFile("TestData/euler-no.txt");
+        graphE.PrintGraph();
+        EulerCycle.RunAndPrint(graphE);
 
         Console.WriteLine("-----------------");
-
-        graph = GraphParser.LoadGraphFromFile("TestData/mm-graph.txt");
-        graph.PrintGraph();
-        MaximumMatching.RunAndPrint(graph);
+#endif
+#if MM
+        var graphM = GraphParser.LoadGraphFromFile("TestData/mm-graph.txt");
+        graphM.PrintGraph();
+        MaximumMatching.RunAndPrint(graphM);
 
         Console.WriteLine("-----------------");
+#endif
+#if HUNGARY
+        var graphH = GraphParser.LoadGraphFromFile("TestData/hungarian-graph.txt");
+        graphH.PrintGraph();
+        HungarianAlgorithm.Run(graphH);
 
-        graph = GraphParser.LoadGraphFromFile("TestData/hungarian-graph.txt");
-        graph.PrintGraph();
-        HungarianAlgorithm.Run(graph);
+        Console.WriteLine("-----------------");
+#endif
     }
 }
