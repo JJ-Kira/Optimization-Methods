@@ -119,5 +119,68 @@ namespace OptimizationMethods.Graphs
         {
             return Vertices.Values.All(v => v.Neighbors.Count % 2 == 0);
         }
+
+        /// <summary>
+        /// Checks if the graph is bipartite using BFS 2-coloring.
+        /// If yes, returns true and optionally outputs the partition groups.
+        /// 
+        /// Sprawdza, czy graf jest dwudzielny (bipartite) oraz zwraca wykrytą partycję lewą (V1),
+        /// jeśli podział na dwa zbiory jest możliwy.
+        ///
+        /// Graf dwudzielny to taki, którego zbiór wierzchołków można podzielić na dwa rozłączne zbiory
+        /// V1 i V2, tak aby każda krawędź łączyła wierzchołek z V1 z wierzchołkiem z V2.
+        ///
+        /// 🔎 Algorytm opiera się na kolorowaniu wierzchołków przy pomocy BFS:
+        /// 1. Dla każdego nieodwiedzonego wierzchołka v przypisujemy kolor 0 i dodajemy do kolejki.
+        /// 2. Iterujemy po kolejce, przypisując sąsiadom przeciwny kolor (1 - kolor rodzica).
+        /// 3. Jeśli trafimy na sąsiada o tym samym kolorze → graf nie jest dwudzielny.
+        /// 4. Jeśli uda się poprawnie pokolorować cały graf, to graf jest dwudzielny.
+        /// 5. Wszystkie wierzchołki z kolorem 0 trafiają do zbioru `leftPartition` (czyli V1).
+        ///
+        /// Złożoność czasowa: O(V + E)
+        /// </summary>
+        /// <param name="leftPartition">Zbiór wykrytych wierzchołków należących do lewej partycji (V1).</param>
+        /// <returns>True, jeśli graf jest dwudzielny; false w przeciwnym razie.</returns>
+        public bool IsBipartite(out HashSet<int> leftPartition)
+        {
+            var color = new Dictionary<int, int>(); // 0 or 1
+            leftPartition = new HashSet<int>();
+
+            foreach (var v in Vertices.Keys)
+            {
+                if (!color.ContainsKey(v))
+                {
+                    var queue = new Queue<int>();
+                    queue.Enqueue(v);
+                    color[v] = 0;
+                    leftPartition.Add(v);
+
+                    while (queue.Count > 0)
+                    {
+                        int u = queue.Dequeue();
+                        foreach (int neighbor in Vertices[u].Neighbors)
+                        {
+                            if (!color.ContainsKey(neighbor))
+                            {
+                                color[neighbor] = 1 - color[u];
+                                queue.Enqueue(neighbor);
+
+                                if (color[neighbor] == 0)
+                                    leftPartition.Add(neighbor);
+                            }
+                            else if (color[neighbor] == color[u])
+                            {
+                                // Two adjacent vertices with same color → not bipartite
+                                leftPartition = null;
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
     }
 }

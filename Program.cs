@@ -9,9 +9,15 @@ class Program
         var graph = GraphParser.LoadGraphFromFile("TestData/euler-yes.txt");
         graph.PrintGraph();
         EulerCycle.RunAndPrint(graph);
-        Console.WriteLine("-----------------");
+        Console.WriteLine("----");
         graph = GraphParser.LoadGraphFromFile("TestData/euler-no.txt");
         graph.PrintGraph();
         EulerCycle.RunAndPrint(graph);
+
+        Console.WriteLine("-----------------");
+
+        graph = GraphParser.LoadGraphFromFile("TestData/mm-graph.txt");
+        graph.PrintGraph();
+        MaximumMatching.RunAndPrint(graph);
     }
 }
