@@ -12,17 +12,38 @@ namespace OptimizationMethods.Algorithms
         /// - The graph is connected (excluding isolated vertices).
         /// - All vertices have even degrees.
         /// 
-        /// This method uses helper checks defined in the Graph class:
+        /// /// This method uses helper checks defined in the Graph class:
         /// - Graph.IsConnected()
         /// - Graph.AllVerticesHaveEvenDegree()
+        ///
+        /// This method returns true if the graph satisfies both conditions.
+        /// If not, it provides an explanation via the out parameter `failureReason`.
         /// </summary>
-        public static bool HasEulerianCycle(Graph graph)
+        public static bool HasEulerianCycle(Graph graph, out string? failureReason)
         {
-            if (graph.IsDirected)
-                throw new NotSupportedException("This implementation supports only undirected graphs.");
+            failureReason = null;
 
-            return graph.IsConnected() && graph.AllVerticesHaveEvenDegree();
+            if (graph.IsDirected)
+            {
+                failureReason = "Directed graphs are not supported by this implementation.";
+                return false;
+            }
+
+            if (!graph.IsConnected())
+            {
+                failureReason = "The graph is not connected — not all vertices with edges are reachable.";
+                return false;
+            }
+
+            if (!graph.AllVerticesHaveEvenDegree())
+            {
+                failureReason = "Not all vertices have even degree — this violates Eulerian cycle conditions.";
+                return false;
+            }
+
+            return true;
         }
+
 
         /// <summary>
         /// Constructs an Eulerian cycle using Hierholzer’s Algorithm.
@@ -50,8 +71,13 @@ namespace OptimizationMethods.Algorithms
         /// </summary>
         public static List<int> FindEulerianCycle(Graph graph)
         {
-            if (!HasEulerianCycle(graph))
+            if (!HasEulerianCycle(graph, out string? reason))
+            {
+                Console.WriteLine("No Eulerian cycle exists in the graph.");
+                if (!string.IsNullOrWhiteSpace(reason))
+                    Console.WriteLine(reason);
                 return null;
+            }
 
             // Clone the graph’s adjacency list to modify during traversal (removing used edges)
             var localAdj = graph.Vertices.ToDictionary(
@@ -103,15 +129,12 @@ namespace OptimizationMethods.Algorithms
         {
             Console.WriteLine("Checking for Eulerian cycle...");
 
-            if (!HasEulerianCycle(graph))
-            {
-                Console.WriteLine("No Eulerian cycle exists in the graph.");
-                return;
-            }
-
             var cycle = FindEulerianCycle(graph);
-            Console.WriteLine("Eulerian cycle found:");
-            Console.WriteLine(string.Join(" -> ", cycle));
+            if (cycle != null)
+            {
+                Console.WriteLine("Eulerian cycle found:");
+                Console.WriteLine(string.Join(" -> ", cycle));
+            }
         }
     }
 }
