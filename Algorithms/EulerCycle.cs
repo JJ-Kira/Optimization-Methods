@@ -125,7 +125,7 @@ namespace OptimizationMethods.Algorithms
         /// <summary>
         /// Runs the Eulerian cycle algorithm on the given graph and prints the result.
         /// </summary>
-        public static void RunAndPrint(Graph graph)
+        public static void RunAndPrint(Graph graph, string? toDotPath = null)
         {
             Console.WriteLine("Checking for Eulerian cycle...");
 
@@ -134,6 +134,9 @@ namespace OptimizationMethods.Algorithms
             {
                 Console.WriteLine("Eulerian cycle found:");
                 Console.WriteLine(string.Join(" -> ", cycle));
+
+                if (toDotPath != null)
+                    GraphPrinter.ExportWithCycle(graph, cycle, toDotPath);
             }
         }
     }

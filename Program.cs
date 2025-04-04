@@ -13,7 +13,7 @@ class Program
 #if EULER
         var graphE = GraphParser.LoadGraphFromFile("TestData/euler-yes.txt");
         graphE.PrintGraph();
-        EulerCycle.RunAndPrint(graphE);
+        EulerCycle.RunAndPrint(graphE, "euler-output.dot");
         Console.WriteLine("----");
         graphE = GraphParser.LoadGraphFromFile("TestData/euler-no.txt");
         graphE.PrintGraph();
@@ -24,14 +24,15 @@ class Program
 #if MM
         var graphM = GraphParser.LoadGraphFromFile("TestData/mm-graph.txt");
         graphM.PrintGraph();
-        MaximumMatching.RunAndPrint(graphM);
+        MaximumMatching.RunAndPrint(graphM, toDotPath: "max-output.dot");
 
         Console.WriteLine("-----------------");
 #endif
 #if HUNGARY
         var graphH = GraphParser.LoadGraphFromFile("TestData/hungarian-graph.txt");
         graphH.PrintGraph();
-        HungarianAlgorithm.Run(graphH);
+        GraphPrinter.WriteDotFile(graphH, "hungarian-input.dot");
+        HungarianAlgorithm.Run(graphH, "hungarian-output.dot");
 
         Console.WriteLine("-----------------");
 #endif

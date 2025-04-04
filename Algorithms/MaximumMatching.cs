@@ -117,13 +117,16 @@ namespace OptimizationMethods.Algorithms
         /// <summary>
         /// Uruchamia algorytm i wypisuje maksymalne skojarzenie.
         /// </summary>
-        public static void RunAndPrint(Graph graph, List<int>? leftPartition = null)
+        public static void RunAndPrint(Graph graph, List<int>? leftPartition = null, string? toDotPath = null)
         {
             var result = FindMaximumMatching(graph, leftPartition);
 
             Console.WriteLine("Maksymalne skojarzenie:");
             foreach (var pair in result)
                 Console.WriteLine($"{pair.Key} - {pair.Value}");
+
+            if (toDotPath != null)
+                GraphPrinter.ExportWithMatching(graph, result, toDotPath);
         }
     }
 }

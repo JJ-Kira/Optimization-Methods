@@ -62,7 +62,7 @@ namespace OptimizationMethods.Algorithms
         private static HashSet<int> visited;
         private static HashSet<int> S, T;
 
-        public static void Run(Graph graph)
+        public static void Run(Graph graph, string? toDotPath = null)
         {
             // === Step 0: Validate graph ===
             if (!graph.IsDirected)
@@ -150,6 +150,13 @@ namespace OptimizationMethods.Algorithms
             int totalCost = match.Where(kv => leftPartition.Contains(kv.Key))
                                  .Sum(kv => graph.GetEdgeWeight(kv.Key, kv.Value));
             Console.WriteLine($"Total cost: {totalCost}");
+
+            if (toDotPath != null)
+            {
+                var result = match.Where(kv => leftPartition.Contains(kv.Key))
+                                  .ToDictionary(p => p.Key, p => p.Value);
+                GraphPrinter.ExportWithMatching(graph, result, toDotPath);
+            }
         }
 
         /// <summary>
