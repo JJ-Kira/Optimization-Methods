@@ -97,11 +97,11 @@ namespace OptimizationMethods.Graphs
             string conn = graph.IsDirected ? "->" : "--";
             var added = new HashSet<string>();
 
-            // Add node definitions
+            // Add node declarations
             foreach (var vertex in graph.Vertices.Values)
                 sb.AppendLine($"    {vertex.Id};");
 
-            // Highlight edges in traversal order with index
+            // Highlight cycle with numbered traversal
             for (int i = 0; i < cycle.Count - 1; i++)
             {
                 int from = cycle[i];
@@ -117,22 +117,21 @@ namespace OptimizationMethods.Graphs
                 sb.AppendLine($"    {from} {conn} {to} [label=\"{i}\", color=blue, penwidth=2.0];");
             }
 
-            // Add other (non-cycle) edges if needed
+            // Add remaining edges (not in cycle)
             foreach (var edge in graph.Edges)
             {
                 string key = graph.IsDirected
                     ? $"{edge.From}->{edge.To}"
                     : string.Join("--", new[] { edge.From, edge.To }.OrderBy(x => x));
 
-                if (added.Contains(key))
-                    continue;
+                if (added.Contains(key)) continue;
 
                 sb.AppendLine($"    {edge.From} {conn} {edge.To} [label=\"{edge.Weight}\"];");
             }
 
             sb.AppendLine("}");
             File.WriteAllText(path, sb.ToString());
-            Console.WriteLine($"DOT output with ordered cycle saved to: {Path.GetFullPath(path)}");
+            Console.WriteLine($"DOT output with cycle saved to: {Path.GetFullPath(path)}");
         }
 
     }

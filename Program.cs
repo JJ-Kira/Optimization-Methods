@@ -1,6 +1,7 @@
 ﻿#define EULER
 #define MM
 #define HUNGARY
+#define TSP
 
 using OptimizationMethods.Algorithms;
 using OptimizationMethods.Graphs;
@@ -35,6 +36,12 @@ class Program
         HungarianAlgorithm.Run(graphH, "hungarian-output.dot");
 
         Console.WriteLine("-----------------");
+#endif
+#if TSP
+        var graph = GraphParser.LoadGraphFromFile("TestData/tsp-graph.txt");
+        graph.PrintGraph();
+        TravelingSalesmanProblem.RunBranchAndBound(graph, "tsp-output.dot");
+
 #endif
     }
 }

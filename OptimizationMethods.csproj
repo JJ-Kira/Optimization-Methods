@@ -12,6 +12,7 @@
     <None Remove="TestData\euler-yes.txt" />
     <None Remove="TestData\hungarian-graph.txt" />
     <None Remove="TestData\mm-graph.txt" />
+    <None Remove="TestData\tsp-graph.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +26,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="TestData\mm-graph.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\tsp-graph.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

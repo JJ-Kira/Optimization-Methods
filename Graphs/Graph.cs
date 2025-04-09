@@ -194,5 +194,13 @@ namespace OptimizationMethods.Graphs
             return edge.Weight;
         }
 
+        /// <summary>
+        /// Checks if all edge weights in the graph are positive (useful for TSP).
+        /// </summary>
+        public bool AllEdgesPositive()
+        {
+            return Edges.All(e => e.Weight > 0);
+        }
+
     }
 }
