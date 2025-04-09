@@ -36,6 +36,9 @@ Algorytm Hierholzera konstruuje częściowe cykle i scala je w jeden pełny cykl
 Skojarzenie to zbiór krawędzi, które nie mają wspólnych wierzchołków.  
 Maksymalne skojarzenie to takie, którego nie da się już powiększyć bez konfliktu.  
 Algorytm znajduje tzw. **ścieżki powiększające** i używa ich do rozszerzania skojarzenia.
+Ścieżka powiększająca względem aktualnego skojarzenia to ścieżka w grafie,
+która zaczyna się i kończy w wolnych wierzchołkach,
+i której krawędzie naprzemiennie należą i nie należą do aktualnego skojarzenia.
 
 ### 📜 Kroki:
 1. Zainicjuj `match[v] = -1` dla wszystkich wierzchołków
