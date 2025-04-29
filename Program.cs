@@ -1,7 +1,7 @@
 ﻿//#define EULER
-#define MM
+//#define MM
 //#define HUNGARY
-//#define TSP
+#define TSP
 
 using OptimizationMethods.Algorithms;
 using OptimizationMethods.Graphs;

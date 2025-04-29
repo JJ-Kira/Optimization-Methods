@@ -21,18 +21,7 @@ namespace OptimizationMethods.Algorithms
     /// 3. Kontynuujemy eksplorację tylko tych podzbiorów, które mają najniższe ograniczenie
     /// 4. Powtarzamy, aż znajdziemy pełny cykl Hamiltona
     ///
-    /// Pseudokod (z wykładu):
-    /// 
-    /// Metoda podziału i ograniczeń:
-    /// P
-    /// ├─ P1 (zawierający łuk)
-    /// └─ P2 (niezawierający łuku)
-    /// 
-    /// while(istnieją podzbiory do rozwinięcia)
-    ///     wybierz podzbiór z najniższym ograniczeniem LB
-    ///     podziel go dalej lub zaakceptuj jeśli to cykl Hamiltona
-    ///
-    /// Note: Currently implemented as DFS with cost pruning (simplified B&B)
+    /// Note: Implemented as DFS with cost pruning (simplified Branch and Bound).
     /// </summary>
     public static class TravelingSalesmanProblem
     {
@@ -55,15 +44,13 @@ namespace OptimizationMethods.Algorithms
         private static int bestCost = int.MaxValue;
         private static List<int>? bestPath = null;
 
-        public static void RunBranchAndBound(Graph graph, string? toDotPath = null) //TODO: support directed graphs
+        /// <summary>
+        /// Runs TSP Branch & Bound method.
+        /// Supports both directed and undirected graphs.
+        /// </summary>
+        public static void RunBranchAndBound(Graph graph, string? toDotPath = null)
         {
             // === Step 0: Validate input graph ===
-            if (graph.IsDirectedLogical)
-            {
-                Console.WriteLine("TSP requires an undirected graph.");
-                return;
-            }
-
             if (graph.VertexCount < 3)
             {
                 Console.WriteLine("TSP requires at least 3 vertices.");
@@ -72,7 +59,7 @@ namespace OptimizationMethods.Algorithms
 
             if (!graph.IsConnected())
             {
-                Console.WriteLine("TSP requires the graph to be fully connected.");
+                Console.WriteLine("TSP requires the graph to be connected.");
                 return;
             }
 
@@ -99,7 +86,6 @@ namespace OptimizationMethods.Algorithms
             // === Step 5: Output result ===
             if (bestPath != null)
             {
-                bestPath.Add(start); // close the cycle
                 Console.WriteLine($"Optimal TSP path: {string.Join(" -> ", bestPath)}");
                 Console.WriteLine($"Total cost: {bestCost}");
 
@@ -112,6 +98,9 @@ namespace OptimizationMethods.Algorithms
             }
         }
 
+        /// <summary>
+        /// Recursive DFS + pruning for Branch and Bound search.
+        /// </summary>
         private static void Search(Graph graph, State current)
         {
             // === Step 2: Base case — complete tour ===
@@ -123,7 +112,7 @@ namespace OptimizationMethods.Algorithms
                     if (totalCost < bestCost)
                     {
                         bestCost = totalCost;
-                        bestPath = new List<int>(current.Path);
+                        bestPath = new List<int>(current.Path) { current.Path[0] }; // close cycle when saving
                     }
                 }
                 return;
@@ -146,13 +135,17 @@ namespace OptimizationMethods.Algorithms
             }
         }
 
-        // Placeholder for MST-based solution
+        /// <summary>
+        /// Placeholder for MST-based TSP approximation (not implemented).
+        /// </summary>
         public static void RunMstApproximation(Graph graph, string? toDotPath = null)
         {
             Console.WriteLine("MST-based TSP not yet implemented.");
         }
 
-        // Placeholder for genetic algorithm
+        /// <summary>
+        /// Placeholder for genetic TSP algorithm (not implemented).
+        /// </summary>
         public static void RunGenetic(Graph graph, string? toDotPath = null)
         {
             Console.WriteLine("Genetic TSP not yet implemented.");
