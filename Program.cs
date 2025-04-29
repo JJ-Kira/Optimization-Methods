@@ -1,7 +1,7 @@
-﻿#define EULER
+﻿//#define EULER
 #define MM
-#define HUNGARY
-#define TSP
+//#define HUNGARY
+//#define TSP
 
 using OptimizationMethods.Algorithms;
 using OptimizationMethods.Graphs;
@@ -23,14 +23,26 @@ class Program
         Console.WriteLine("-----------------");
 #endif
 #if MM
-        var graphM = GraphParser.LoadGraphFromFile("TestData/mm-graph.txt");
+        var graphM = GraphParser.LoadGraphFromFile("TestData/maksymalne_skojarzenie2.txt");
         graphM.PrintGraph();
-        MaximumMatching.RunAndPrint(graphM, toDotPath: "max-output.dot");
+        MaximumMatching.RunAndPrint(graphM, toDotPath: "max-output2.dot");
+
+        var initialMatching = new Dictionary<int, int>
+        {
+            { 1, 5 },
+            { 5, 1 },
+            { 2, 6 },
+            { 6, 2 }
+        };
+
+        // === Call with initial matching ===
+        MaximumMatching.RunAndPrint(graphM, initialMatching: initialMatching, toDotPath: "max-output.dot");
+
 
         Console.WriteLine("-----------------");
 #endif
 #if HUNGARY
-        var graphH = GraphParser.LoadGraphFromFile("TestData/hungarian-graph.txt");
+        var graphH = GraphParser.LoadGraphFromFile("TestData/algorytm_wegierski1.txt");
         graphH.PrintGraph();
         GraphPrinter.WriteDotFile(graphH, "hungarian-input.dot");
         HungarianAlgorithm.Run(graphH, "hungarian-output.dot");
@@ -38,9 +50,9 @@ class Program
         Console.WriteLine("-----------------");
 #endif
 #if TSP
-        var graph = GraphParser.LoadGraphFromFile("TestData/tsp-graph.txt");
+        var graph = GraphParser.LoadGraphFromFile("TestData/komiwojazer1.txt");
         graph.PrintGraph();
-        TravelingSalesmanProblem.RunBranchAndBound(graph, "tsp-output.dot");
+        TravelingSalesmanProblem.RunBranchAndBound(graph, "komiwojazer-output.dot");
 
 #endif
     }

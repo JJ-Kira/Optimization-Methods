@@ -8,14 +8,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="TestData\algorytm_wegierski1.txt" />
+    <None Remove="TestData\algorytm_wegierski2.txt" />
     <None Remove="TestData\euler-no.txt" />
     <None Remove="TestData\euler-yes.txt" />
     <None Remove="TestData\hungarian-graph.txt" />
+    <None Remove="TestData\komiwojazer1.txt" />
+    <None Remove="TestData\maksymalne_skojarzenie1.txt" />
+    <None Remove="TestData\maksymalne_skojarzenie2.txt" />
     <None Remove="TestData\mm-graph.txt" />
     <None Remove="TestData\tsp-graph.txt" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="TestData\algorytm_wegierski1.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\algorytm_wegierski2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="TestData\euler-no.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -23,6 +34,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="TestData\hungarian-graph.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\komiwojazer1.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\maksymalne_skojarzenie1.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\maksymalne_skojarzenie2.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="TestData\mm-graph.txt">

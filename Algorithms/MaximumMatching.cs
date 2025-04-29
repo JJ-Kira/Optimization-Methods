@@ -10,33 +10,22 @@ namespace OptimizationMethods.Algorithms
     ///     bez naruszenia tej zasady.
     /// 
     /// W grafie dwudzielnym G=(V1 ∪ V2, E), maksymalne skojarzenie znajdziemy przy pomocy
-    /// algorytmu bazującego na ścieżkach powiększających. Opiera się on na:
-    ///  - Twierdzeniu Berge'a: skojarzenie M jest maksymalne ⟺ nie istnieje ścieżka powiększająca.
+    /// algorytmu bazującego na ścieżkach powiększających.
     /// 
     /// 🔁 Algorytm (złożoność: O(V * E)):
-    ///  1. Zaczynamy od pustego skojarzenia M.
+    ///  1. Zaczynamy od (opcjonalnie) podanego początkowego skojarzenia lub pustego.
     ///  2. Szukamy ścieżki powiększającej p względem M.
     ///  3. Jeżeli istnieje, aktualizujemy M := M ⊕ p (suma symetryczna).
     ///  4. Powtarzamy aż nie da się znaleźć więcej ścieżek powiększających.
-    ///  
+    /// 
     /// MAKSYMALNE-SKOJARZENIE(G = (V1 ∪ V2,E))
-    /// 1) M = ∅
+    /// 1) M = podane lub ∅
     /// 2) repeat
     /// 3)     p = ZNAJDŹ-ŚCIEŻKĘ-POWIĘKSZAJĄCĄ(G, M)
     /// 4)     if p ≠ NIL then
     /// 5)         M = M ⊕ p
     /// 6) until p = NIL
     /// 7) return M
-    ///
-    /// Although both algorithms rely on finding augmenting paths, 
-    /// we can't directly reuse MaximumMatching because:
-    /// Hungarian uses an equality graph Gl, where edges must satisfy l(u) + l(v) == c(u, v). 
-    /// This graph changes after each label update and is not part of the original graph.
-    /// Hungarian requires tighter control: 
-    /// it builds alternating trees, tracks labels, and modifies matchings dynamically
-    /// — beyond what MaximumMatching supports.
-    /// While conceptually similar, Hungarian needs a customized DFS and matching logic 
-    /// tailored to label conditions and equality constraints.
     /// </summary>
     public static class MaximumMatching
     {
@@ -44,10 +33,11 @@ namespace OptimizationMethods.Algorithms
         private static HashSet<int> visited;
 
         /// <summary>
-        /// Główna funkcja: znajduje maksymalne skojarzenie w grafie dwudzielnym.
-        /// Jeśli leftPartition nie zostanie podane, zostanie wyznaczone automatycznie.
+        /// Finds a maximum matching in a bipartite graph.
+        /// If leftPartition is not provided, it will be detected automatically.
+        /// If initialMatching is provided, starts augmenting from that matching.
         /// </summary>
-        public static Dictionary<int, int> FindMaximumMatching(Graph graph, List<int>? leftPartition = null)
+        public static Dictionary<int, int> FindMaximumMatching(Graph graph, List<int>? leftPartition = null, Dictionary<int, int>? initialMatching = null)
         {
             // === Step 1: Check bipartiteness and determine partition if needed ===
             if (!graph.IsBipartite(out var autoPartition))
@@ -60,30 +50,43 @@ namespace OptimizationMethods.Algorithms
                 Console.WriteLine(string.Join(", ", leftPartition));
             }
 
-            match = new Dictionary<int, int>();
+            // === Step 2: Initialize matching ===
+            if (initialMatching != null)
+            {
+                match = new Dictionary<int, int>(initialMatching);
 
-            // Inicjalizacja: wszyscy nieskojarzeni
-            foreach (var v in graph.Vertices.Keys)
-                match[v] = -1;
+                // Add missing vertices
+                foreach (var v in graph.Vertices.Keys)
+                {
+                    if (!match.ContainsKey(v))
+                        match[v] = -1;
+                }
+            }
+            else
+            {
+                match = new Dictionary<int, int>();
+                foreach (var v in graph.Vertices.Keys)
+                    match[v] = -1;
+            }
 
             bool pathFound;
 
-            // === Step 2: Repeat while augmenting path is found ===
+            // === Step 3: Repeat while augmenting path is found ===
             do
             {
                 pathFound = false;
                 visited = new HashSet<int>();
 
-                // Próbuj dla każdego wolnego wierzchołka z lewej strony
+                // 🔥 Corrected: Try augmenting from EVERY vertex in leftPartition
                 foreach (int u in leftPartition)
                 {
-                    if (match[u] == -1 && FindAugmentingPath(graph, u))
+                    if (FindAugmentingPath(graph, u))
                         pathFound = true;
                 }
 
             } while (pathFound);
 
-            // Zwracamy tylko unikalne pary (np. 1-5, bez duplikatu 5-1)
+            // Return only unique pairs
             return match.Where(p => p.Key < p.Value)
                         .ToDictionary(p => p.Key, p => p.Value);
         }
@@ -111,12 +114,13 @@ namespace OptimizationMethods.Algorithms
 
         /// <summary>
         /// Uruchamia algorytm i wypisuje maksymalne skojarzenie.
+        /// Opcjonalnie można podać lewą partycję i początkowe skojarzenie.
         /// </summary>
-        public static void RunAndPrint(Graph graph, List<int>? leftPartition = null, string? toDotPath = null)
+        public static void RunAndPrint(Graph graph, List<int>? leftPartition = null, Dictionary<int, int>? initialMatching = null, string? toDotPath = null)
         {
-            var result = FindMaximumMatching(graph, leftPartition);
+            var result = FindMaximumMatching(graph, leftPartition, initialMatching);
 
-            Console.WriteLine("Maksymalne skojarzenie:");
+            Console.WriteLine("Maximum matching:");
             foreach (var pair in result)
                 Console.WriteLine($"{pair.Key} - {pair.Value}");
 

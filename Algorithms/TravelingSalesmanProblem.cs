@@ -10,6 +10,9 @@ namespace OptimizationMethods.Algorithms
     /// i powrócić do miejscowości z której rozpoczął swoją podróż.
     /// Problem polega na znalezieniu najkrótszego cyklu Hamiltona w grafie pełnym.
     ///
+    /// To taki cykl w grafie, który przechodzi przez każdy wierzchołek dokładnie raz 
+    /// i wraca do punktu początkowego.
+    /// 
     /// Metoda podziału i ograniczeń (Branch & Bound):
     /// 1. Dzielimy przestrzeń rozwiązań na dwa podzbiory:
     ///    - zawierający dany łuk (i, j)
@@ -52,10 +55,10 @@ namespace OptimizationMethods.Algorithms
         private static int bestCost = int.MaxValue;
         private static List<int>? bestPath = null;
 
-        public static void RunBranchAndBound(Graph graph, string? toDotPath = null)
+        public static void RunBranchAndBound(Graph graph, string? toDotPath = null) //TODO: support directed graphs
         {
             // === Step 0: Validate input graph ===
-            if (graph.IsDirected)
+            if (graph.IsDirectedLogical)
             {
                 Console.WriteLine("TSP requires an undirected graph.");
                 return;

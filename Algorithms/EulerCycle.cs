@@ -18,27 +18,46 @@ namespace OptimizationMethods.Algorithms
         ///
         /// This method returns true if the graph satisfies both conditions.
         /// If not, it provides an explanation via the out parameter `failureReason`.
+        /// 
+        /// For logically undirected graphs:
+        ///   - The graph must be connected.
+        ///   - All vertices must have even degrees.
+        /// 
+        /// For logically directed graphs:
+        ///   - The graph must be strongly connected.
+        ///   - For every vertex, in-degree == out-degree.
         /// </summary>
         public static bool HasEulerianCycle(Graph graph, out string? failureReason)
         {
             failureReason = null;
 
-            if (graph.IsDirected)
+            if (graph.IsDirectedLogical)
             {
-                failureReason = "Directed graphs are not supported by this implementation.";
-                return false;
-            }
+                if (!graph.IsStronglyConnected())
+                {
+                    failureReason = "The directed graph is not strongly connected.";
+                    return false;
+                }
 
-            if (!graph.IsConnected())
-            {
-                failureReason = "The graph is not connected — not all vertices with edges are reachable.";
-                return false;
+                if (!graph.AllVerticesBalancedDirected())
+                {
+                    failureReason = "Not all vertices have equal in-degree and out-degree.";
+                    return false;
+                }
             }
-
-            if (!graph.AllVerticesHaveEvenDegree())
+            else
             {
-                failureReason = "Not all vertices have even degree — this violates Eulerian cycle conditions.";
-                return false;
+                if (!graph.IsConnected())
+                {
+                    failureReason = "The undirected graph is not connected.";
+                    return false;
+                }
+
+                if (!graph.AllVerticesHaveEvenDegree())
+                {
+                    failureReason = "Not all vertices have even degree — violates Eulerian cycle conditions.";
+                    return false;
+                }
             }
 
             return true;
@@ -69,7 +88,7 @@ namespace OptimizationMethods.Algorithms
         ///             push(STOS, w);
         ///             Usuń krawędź
         /// </summary>
-        public static List<int> FindEulerianCycle(Graph graph)
+        public static List<int>? FindEulerianCycle(Graph graph)
         {
             if (!HasEulerianCycle(graph, out string? reason))
             {
@@ -79,7 +98,7 @@ namespace OptimizationMethods.Algorithms
                 return null;
             }
 
-            // Clone the graph’s adjacency list to modify during traversal (removing used edges)
+            // Clone the adjacency list to modify during traversal (removing used edges)
             var localAdj = graph.Vertices.ToDictionary(
                 v => v.Key,
                 v => new List<int>(v.Value.Neighbors)
@@ -89,33 +108,31 @@ namespace OptimizationMethods.Algorithms
             var cycle = new List<int>();
 
             // === Step 1 ===
-            // Start from any vertex and push onto stack (push(STOS,u))
-            // Step 1: Start at any vertex
+            // Start from any vertex
             int start = graph.Vertices.Keys.First();
             stack.Push(start);
 
-            // === Step 2 ===
-            // While STOS ≠ ∅
-            // Steps 2–6: Build and merge cycles
+            // === Steps 2–6 ===
+            // Build the Eulerian cycle
             while (stack.Count > 0)
             {
-                int current = stack.Peek(); // v := top(STOS);
+                int current = stack.Peek();
 
                 if (localAdj[current].Count == 0)
                 {
-                    // Step 3: No more unused edges — add vertex to cycle
-                    // if S[v] = ∅ then
-                    cycle.Add(current);  // LISTA ← v
-                    stack.Pop();         // pop(STOS)
-
+                    // No more outgoing edges — add to final cycle
+                    cycle.Add(current);
+                    stack.Pop();
                 }
                 else
                 {
-                    // Step 2: Traverse and remove the edge
-                    int neighbor = localAdj[current][0];   // w := pop(S[v])
+                    int neighbor = localAdj[current][0];
                     localAdj[current].Remove(neighbor);
-                    localAdj[neighbor].Remove(current);    // Usuń krawędź
-                    stack.Push(neighbor);                  // push(STOS, w)
+
+                    if (!graph.IsDirectedLogical)
+                        localAdj[neighbor].Remove(current); // Remove reverse edge for undirected graph
+
+                    stack.Push(neighbor);
                 }
             }
 

@@ -4,15 +4,17 @@ namespace OptimizationMethods.Graphs
 {
     internal class GraphParser
     {
+        /// <summary>
+        /// Loads a graph from a file.
+        /// Supports both logically directed and undirected graphs.
+        /// </summary>
         public static Graph LoadGraphFromFile(string filePath)
         {
             if (!File.Exists(filePath))
-            {
                 throw new FileNotFoundException($"File not found: {filePath}");
-            }
 
-            bool? isDirected = null;
-            var graph = (Graph)null;
+            bool? isDirectedLogical = null;
+            Graph graph = null;
 
             var lines = File.ReadAllLines(filePath).ToList();
 
@@ -22,8 +24,8 @@ namespace OptimizationMethods.Graphs
 
                 if (line.StartsWith("#DIGRAPH", StringComparison.OrdinalIgnoreCase))
                 {
-                    isDirected = bool.Parse(lines[++i].Trim());
-                    graph = new Graph(isDirected.Value);
+                    isDirectedLogical = bool.Parse(lines[++i].Trim());
+                    graph = new Graph(isDirectedLogical.Value);
                 }
                 else if (line.StartsWith("#EDGES", StringComparison.OrdinalIgnoreCase))
                 {
@@ -46,7 +48,7 @@ namespace OptimizationMethods.Graphs
             }
 
             if (graph == null)
-                throw new InvalidDataException("Graph file missing #DIGRAPH or improperly formatted.");
+                throw new InvalidDataException("Graph file missing #DIGRAPH section or improperly formatted.");
 
             return graph;
         }

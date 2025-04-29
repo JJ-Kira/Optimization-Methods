@@ -10,8 +10,8 @@ namespace OptimizationMethods.Graphs
         public static string ToDot(Graph graph)
         {
             var sb = new StringBuilder();
-            string graphType = graph.IsDirected ? "digraph" : "graph";
-            string connector = graph.IsDirected ? "->" : "--";
+            string graphType = graph.IsDirectedLogical ? "digraph" : "graph";
+            string connector = graph.IsDirectedLogical ? "->" : "--";
 
             sb.AppendLine($"{graphType} G {{");
 
@@ -19,11 +19,11 @@ namespace OptimizationMethods.Graphs
             foreach (var vertex in graph.Vertices.Values)
                 sb.AppendLine($"    {vertex.Id};");
 
-            // Edges (avoid duplicates in undirected)
+            // Edges (deduplicate if logically undirected)
             var added = new HashSet<string>();
             foreach (var edge in graph.Edges)
             {
-                string key = graph.IsDirected
+                string key = graph.IsDirectedLogical
                     ? $"{edge.From}->{edge.To}"
                     : string.Join("--", new[] { edge.From, edge.To }.OrderBy(x => x));
 
@@ -39,7 +39,7 @@ namespace OptimizationMethods.Graphs
         }
 
         /// <summary>
-        /// Exports the graph to a .dot file for use with Graphviz.
+        /// Exports the graph to a DOT file for Graphviz visualization.
         /// </summary>
         public static void WriteDotFile(Graph graph, string path)
         {
@@ -47,30 +47,30 @@ namespace OptimizationMethods.Graphs
             Console.WriteLine($"DOT file written to: {Path.GetFullPath(path)}");
         }
 
+        /// <summary>
+        /// Exports the graph highlighting a matching.
+        /// </summary>
         public static void ExportWithMatching(Graph graph, Dictionary<int, int> matching, string path)
         {
             var sb = new StringBuilder();
-            sb.AppendLine(graph.IsDirected ? "digraph G {" : "graph G {");
-            string conn = graph.IsDirected ? "->" : "--";
+            sb.AppendLine(graph.IsDirectedLogical ? "digraph G {" : "graph G {");
+            string conn = graph.IsDirectedLogical ? "->" : "--";
 
-            // Normalize matched edge keys to avoid duplicate undirected entries
             var matchedEdges = new HashSet<string>(
                 matching
-                    .Where(kv => kv.Key < kv.Value) // only one direction
-                    .Select(kv => graph.IsDirected
+                    .Where(kv => kv.Key < kv.Value)
+                    .Select(kv => graph.IsDirectedLogical
                         ? $"{kv.Key}->{kv.Value}"
                         : string.Join("--", new[] { kv.Key, kv.Value }.OrderBy(x => x)))
             );
 
-            // Declare nodes
             foreach (var vertex in graph.Vertices.Values)
                 sb.AppendLine($"    {vertex.Id};");
 
-            // Declare edges with deduplication
             var added = new HashSet<string>();
             foreach (var edge in graph.Edges)
             {
-                string key = graph.IsDirected
+                string key = graph.IsDirectedLogical
                     ? $"{edge.From}->{edge.To}"
                     : string.Join("--", new[] { edge.From, edge.To }.OrderBy(x => x));
 
@@ -90,24 +90,27 @@ namespace OptimizationMethods.Graphs
             Console.WriteLine($"DOT file written to: {Path.GetFullPath(path)}");
         }
 
+        /// <summary>
+        /// Exports the graph highlighting a cycle (e.g., Eulerian cycle).
+        /// </summary>
         public static void ExportWithCycle(Graph graph, List<int> cycle, string path)
         {
             var sb = new StringBuilder();
-            sb.AppendLine(graph.IsDirected ? "digraph G {" : "graph G {");
-            string conn = graph.IsDirected ? "->" : "--";
+            sb.AppendLine(graph.IsDirectedLogical ? "digraph G {" : "graph G {");
+            string conn = graph.IsDirectedLogical ? "->" : "--";
+
             var added = new HashSet<string>();
 
-            // Add node declarations
             foreach (var vertex in graph.Vertices.Values)
                 sb.AppendLine($"    {vertex.Id};");
 
-            // Highlight cycle with numbered traversal
+            // Highlight cycle edges
             for (int i = 0; i < cycle.Count - 1; i++)
             {
                 int from = cycle[i];
                 int to = cycle[i + 1];
 
-                string key = graph.IsDirected
+                string key = graph.IsDirectedLogical
                     ? $"{from}->{to}"
                     : string.Join("--", new[] { from, to }.OrderBy(x => x));
 
@@ -117,14 +120,15 @@ namespace OptimizationMethods.Graphs
                 sb.AppendLine($"    {from} {conn} {to} [label=\"{i}\", color=blue, penwidth=2.0];");
             }
 
-            // Add remaining edges (not in cycle)
+            // Remaining non-cycle edges
             foreach (var edge in graph.Edges)
             {
-                string key = graph.IsDirected
+                string key = graph.IsDirectedLogical
                     ? $"{edge.From}->{edge.To}"
                     : string.Join("--", new[] { edge.From, edge.To }.OrderBy(x => x));
 
                 if (added.Contains(key)) continue;
+                added.Add(key);
 
                 sb.AppendLine($"    {edge.From} {conn} {edge.To} [label=\"{edge.Weight}\"];");
             }
@@ -133,6 +137,5 @@ namespace OptimizationMethods.Graphs
             File.WriteAllText(path, sb.ToString());
             Console.WriteLine($"DOT output with cycle saved to: {Path.GetFullPath(path)}");
         }
-
     }
 }

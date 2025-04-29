@@ -65,15 +65,9 @@ namespace OptimizationMethods.Algorithms
         public static void Run(Graph graph, string? toDotPath = null)
         {
             // === Step 0: Validate graph ===
-            if (!graph.IsDirected)
-            {
-                Console.WriteLine("Algorithm faile. \nGraph must be directed.");
-                return;
-            }
-
             if (!graph.IsBipartite(out var leftPartition))
             {
-                Console.WriteLine("Algorithm faile. \nGraph is not bipartite.");
+                Console.WriteLine("Algorithm failed. \nGraph is not bipartite.");
                 return;
             }
 
@@ -81,13 +75,13 @@ namespace OptimizationMethods.Algorithms
 
             if (leftPartition.Count != rightPartition.Count)
             {
-                Console.WriteLine("Algorithm faile. \nPartitions must be of equal size.");
+                Console.WriteLine("Algorithm failed. \nPartitions must be of equal size.");
                 return;
             }
 
             if (!AllEdgesHaveWeights(graph))
             {
-                Console.WriteLine("Algorithm faile. \nAll edges must have weights.");
+                Console.WriteLine("Algorithm failed. \nAll edges must have weights.");
                 return;
             }
 

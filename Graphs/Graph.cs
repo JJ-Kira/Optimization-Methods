@@ -1,17 +1,16 @@
-﻿using System.Text;
-
-namespace OptimizationMethods.Graphs
+﻿namespace OptimizationMethods.Graphs
 {
     /// <summary>
     /// Represents a graph using an adjacency list.
-    /// Supports both directed and undirected graphs.
+    /// Internally always directed.
     /// </summary>
     public class Graph
     {
         /// <summary>
-        /// Indicates whether the graph is directed.
+        /// Indicates whether the graph was logically intended as directed.
+        /// Only affects printing and external representations.
         /// </summary>
-        public bool IsDirected { get; }
+        public bool IsDirectedLogical { get; }
 
         /// <summary>
         /// Dictionary of vertices, indexed by vertex ID.
@@ -19,24 +18,25 @@ namespace OptimizationMethods.Graphs
         public Dictionary<int, Vertex> Vertices { get; }
 
         /// <summary>
-        /// List of all edges in the graph.
+        /// List of all edges (always stored as directed).
         /// </summary>
         public List<Edge> Edges { get; }
 
         /// <summary>
-        /// Initializes a new graph as directed or undirected.
+        /// Initializes a new graph as logically directed or undirected.
+        /// Internally, graphs are always stored as directed.
         /// </summary>
-        /// <param name="isDirected">True if the graph is directed.</param>
-        public Graph(bool isDirected)
+        /// <param name="isDirectedLogical">True if the graph is logically directed.</param>
+        public Graph(bool isDirectedLogical)
         {
-            IsDirected = isDirected;
+            IsDirectedLogical = isDirectedLogical;
             Vertices = new Dictionary<int, Vertex>();
             Edges = new List<Edge>();
         }
 
         /// <summary>
-        /// Adds an edge to the graph. Also ensures the vertices are created and linked.
-        /// For undirected graphs, adds the reverse edge as well.
+        /// Adds an edge to the graph. Creates vertices if necessary.
+        /// For logically undirected graphs, adds two directed edges.
         /// </summary>
         public void AddEdge(int from, int to, int weight = 1)
         {
@@ -48,7 +48,7 @@ namespace OptimizationMethods.Graphs
             Vertices[from].AddNeighbor(to);
             Edges.Add(new Edge(from, to, weight));
 
-            if (!IsDirected)
+            if (!IsDirectedLogical)
             {
                 Vertices[to].AddNeighbor(from);
                 Edges.Add(new Edge(to, from, weight));
@@ -60,26 +60,24 @@ namespace OptimizationMethods.Graphs
         /// </summary>
         public void PrintGraph()
         {
-            Console.WriteLine(IsDirected ? "Directed Graph:" : "Undirected Graph:");
+            Console.WriteLine(IsDirectedLogical ? "Directed Graph:" : "Undirected Graph:");
             foreach (var v in Vertices.Values)
                 Console.WriteLine(v);
         }
 
         /// <summary>
-        /// Returns the total number of vertices in the graph.
+        /// Returns the total number of vertices.
         /// </summary>
         public int VertexCount => Vertices.Count;
 
         /// <summary>
-        /// Returns the number of edges in the graph (undirected counted only once).
+        /// Returns the number of logical edges (for undirected graphs, counts half).
         /// </summary>
-        public int EdgeCount => IsDirected ? Edges.Count : Edges.Count / 2;
+        public int EdgeCount => IsDirectedLogical ? Edges.Count : Edges.Count / 2;
 
         /// <summary>
         /// Checks if the graph is connected using DFS traversal.
-        /// Ignores isolated vertices (those with no neighbors).
-        /// 
-        /// Useful for algorithms such as Eulerian cycle detection.
+        /// Ignores isolated vertices (those without neighbors).
         /// </summary>
         public bool IsConnected()
         {
@@ -87,19 +85,15 @@ namespace OptimizationMethods.Graphs
             int start = Vertices.Values.FirstOrDefault(v => v.Neighbors.Count > 0)?.Id ?? -1;
 
             if (start == -1)
-                return true; // No edges, considered trivially connected
+                return true; // No edges, trivially connected
 
             DFS(start, visited);
 
-            // Ensure all vertices with edges are reachable
             return Vertices.Values
                            .Where(v => v.Neighbors.Count > 0)
                            .All(v => visited.Contains(v.Id));
         }
 
-        /// <summary>
-        /// Helper method to perform depth-first search.
-        /// </summary>
         private void DFS(int current, HashSet<int> visited)
         {
             visited.Add(current);
@@ -111,39 +105,24 @@ namespace OptimizationMethods.Graphs
         }
 
         /// <summary>
-        /// Checks if all vertices in the graph have even degrees.
-        /// 
-        /// This is a necessary condition for an Eulerian cycle in an undirected graph.
+        /// Checks if all vertices have even degree.
+        /// For logically undirected graphs.
         /// </summary>
         public bool AllVerticesHaveEvenDegree()
         {
+            if (IsDirectedLogical)
+                throw new InvalidOperationException("Even degree check only applies to undirected graphs.");
+
             return Vertices.Values.All(v => v.Neighbors.Count % 2 == 0);
         }
 
         /// <summary>
         /// Checks if the graph is bipartite using BFS 2-coloring.
-        /// If yes, returns true and optionally outputs the partition groups.
-        /// 
-        /// Sprawdza, czy graf jest dwudzielny (bipartite) oraz zwraca wykrytą partycję lewą (V1),
-        /// jeśli podział na dwa zbiory jest możliwy.
-        ///
-        /// Graf dwudzielny to taki, którego zbiór wierzchołków można podzielić na dwa rozłączne zbiory
-        /// V1 i V2, tak aby każda krawędź łączyła wierzchołek z V1 z wierzchołkiem z V2.
-        ///
-        /// 🔎 Algorytm opiera się na kolorowaniu wierzchołków przy pomocy BFS:
-        /// 1. Dla każdego nieodwiedzonego wierzchołka v przypisujemy kolor 0 i dodajemy do kolejki.
-        /// 2. Iterujemy po kolejce, przypisując sąsiadom przeciwny kolor (1 - kolor rodzica).
-        /// 3. Jeśli trafimy na sąsiada o tym samym kolorze → graf nie jest dwudzielny.
-        /// 4. Jeśli uda się poprawnie pokolorować cały graf, to graf jest dwudzielny.
-        /// 5. Wszystkie wierzchołki z kolorem 0 trafiają do zbioru `leftPartition` (czyli V1).
-        ///
-        /// Złożoność czasowa: O(V + E)
+        /// If yes, returns true and optionally outputs the left partition.
         /// </summary>
-        /// <param name="leftPartition">Zbiór wykrytych wierzchołków należących do lewej partycji (V1).</param>
-        /// <returns>True, jeśli graf jest dwudzielny; false w przeciwnym razie.</returns>
         public bool IsBipartite(out HashSet<int> leftPartition)
         {
-            var color = new Dictionary<int, int>(); // 0 or 1
+            var color = new Dictionary<int, int>();
             leftPartition = new HashSet<int>();
 
             foreach (var v in Vertices.Keys)
@@ -170,7 +149,6 @@ namespace OptimizationMethods.Graphs
                             }
                             else if (color[neighbor] == color[u])
                             {
-                                // Two adjacent vertices with same color → not bipartite
                                 leftPartition = null;
                                 return false;
                             }
@@ -183,8 +161,7 @@ namespace OptimizationMethods.Graphs
         }
 
         /// <summary>
-        /// Returns the weight of the edge from one node to another.
-        /// If no such edge exists, throws an exception.
+        /// Returns the weight of an edge from one node to another.
         /// </summary>
         public int GetEdgeWeight(int from, int to)
         {
@@ -195,12 +172,73 @@ namespace OptimizationMethods.Graphs
         }
 
         /// <summary>
-        /// Checks if all edge weights in the graph are positive (useful for TSP).
+        /// Checks if all edge weights are positive.
         /// </summary>
         public bool AllEdgesPositive()
         {
-            return Edges.All(e => e.Weight > 0);
+            return Edges.All(e => e.Weight >= 0);
         }
 
+        /// <summary>
+        /// Checks if the graph is strongly connected.
+        /// Only meaningful for logically directed graphs.
+        /// A directed graph is strongly connected if every vertex is reachable from every other vertex.
+        /// 
+        /// (Two DFS traversals: once normally, once on the reversed graph.)
+        /// </summary>
+        public bool IsStronglyConnected()
+        {
+            if (!IsDirectedLogical)
+                throw new InvalidOperationException("Strong connectivity check is only valid for logically directed graphs.");
+
+            int start = Vertices.Keys.FirstOrDefault();
+            if (start == 0 && Vertices.Count == 0)
+                return true; // Empty graph considered trivially strongly connected
+
+            var visited = new HashSet<int>();
+            DFS(start, visited);
+            if (visited.Count != VertexCount)
+                return false;
+
+            visited.Clear();
+            DFSReverse(start, visited);
+            return visited.Count == VertexCount;
+        }
+
+        /// <summary>
+        /// DFS traversal following reversed edges.
+        /// </summary>
+        private void DFSReverse(int current, HashSet<int> visited)
+        {
+            visited.Add(current);
+            foreach (var vertex in Vertices.Values)
+            {
+                if (vertex.Neighbors.Contains(current) && !visited.Contains(vertex.Id))
+                    DFSReverse(vertex.Id, visited);
+            }
+        }
+
+        /// <summary>
+        /// Checks if every vertex has equal in-degree and out-degree.
+        /// </summary>
+        public bool AllVerticesBalancedDirected()
+        {
+            var inDegrees = new Dictionary<int, int>();
+            var outDegrees = new Dictionary<int, int>();
+
+            foreach (var vertex in Vertices.Keys)
+            {
+                inDegrees[vertex] = 0;
+                outDegrees[vertex] = 0;
+            }
+
+            foreach (var edge in Edges)
+            {
+                outDegrees[edge.From]++;
+                inDegrees[edge.To]++;
+            }
+
+            return Vertices.Keys.All(v => inDegrees[v] == outDegrees[v]);
+        }
     }
 }
