@@ -50,9 +50,15 @@ class Program
         Console.WriteLine("-----------------");
 #endif
 #if TSP
-        var graph = GraphParser.LoadGraphFromFile("TestData/komiwojazer1.txt");
-        graph.PrintGraph();
-        TravelingSalesmanProblem.RunBranchAndBound(graph, "komiwojazer-output.dot");
+        var graphTSP = GraphParser.LoadGraphFromFile("TestData/komiwojazer1.txt");
+        graphTSP.PrintGraph();
+        TravelingSalesmanProblem.RunBranchAndBound(graphTSP, "komiwojazer-bb-output.dot");
+
+        Console.WriteLine("----");
+
+        graphTSP = GraphParser.LoadGraphFromFile("TestData/komiwojazer2.txt");
+        graphTSP.PrintGraph();
+        TravelingSalesmanProblem.RunMstApproximation(graphTSP, "komiwojazer-mst-output.dot");
 
 #endif
     }

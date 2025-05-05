@@ -136,12 +136,100 @@ namespace OptimizationMethods.Algorithms
         }
 
         /// <summary>
-        /// Placeholder for MST-based TSP approximation (not implemented).
+        /// Approximates a solution to the Traveling Salesman Problem (TSP) using the MST-based heuristic.
+        /// 
+        /// 📚 Algorithm based on lecture material:
+        /// 1. Construct a Minimum Spanning Tree (MST) of the input graph.
+        /// 2. Perform a preorder traversal (DFS) of the MST starting from an arbitrary vertex.
+        /// 3. Traverse the graph in the preorder order, skipping already-visited vertices (shortcutting).
+        /// 4. Return to the starting vertex to complete the cycle.
+        /// 
+        /// 💡 This algorithm works on undirected graphs and guarantees an approximation within 2×OPT 
+        ///     if the graph satisfies the triangle inequality.
+        /// 📘 Minimalne Drzewo Rozpinające (MST)
+        /// MST to podzbiór krawędzi grafu nieskierowanego, który:
+        /// - łączy wszystkie wierzchołki grafu (tworzy spójny podgraf),
+        /// - nie zawiera cykli (jest drzewem),
+        /// - ma możliwie najmniejszą sumaryczną wagę.
+        ///
+        /// MST składa się zawsze z dokładnie (V - 1) krawędzi, gdzie V to liczba wierzchołków.
+        /// W grafie z unikalnymi wagami krawędzi MST jest jednoznaczne.
+
         /// </summary>
         public static void RunMstApproximation(Graph graph, string? toDotPath = null)
         {
-            Console.WriteLine("MST-based TSP not yet implemented.");
+            // === Step 0: Validation ===
+            if (graph.VertexCount < 3)
+            {
+                Console.WriteLine("TSP approximation requires at least 3 vertices.");
+                return;
+            }
+
+            if (!graph.IsConnected())
+            {
+                Console.WriteLine("Graph must be connected.");
+                return;
+            }
+
+            if (!graph.AllEdgesPositive())
+            {
+                Console.WriteLine("All edge weights must be positive.");
+                return;
+            }
+
+            Console.WriteLine("Running MST-based approximation for TSP...");
+
+            // === Step 1: Build Minimum Spanning Tree (MST) ===
+            // This gives us a tree that connects all nodes with minimal total weight.
+            var mstEdges = graph.MinimumSpanningTree();
+
+            // Build a new graph from the MST edges
+            var mstGraph = new Graph(isDirectedLogical: false);
+            foreach (var vertex in graph.Vertices.Values)
+                mstGraph.AddVertex(vertex.Id);
+            foreach (var edge in mstEdges)
+                mstGraph.AddEdge(edge.From, edge.To, edge.Weight);
+
+            // === Step 2: Preorder traversal of MST (DFS) ===
+            // This simulates a walk around the tree that visits each node.
+            var start = mstGraph.Vertices.Keys.First();
+            var preorder = new List<int>();
+            var visited = new HashSet<int>();
+
+            void Dfs(int v)
+            {
+                preorder.Add(v);
+                visited.Add(v);
+
+                foreach (var neighbor in mstGraph.Vertices[v].Neighbors)
+                {
+                    if (!visited.Contains(neighbor))
+                        Dfs(neighbor);
+                }
+            }
+
+            Dfs(start); // start DFS from any vertex
+
+            // === Step 3: Shortcutting — skip repeated vertices ===
+            // This builds a Hamiltonian path visiting all nodes once.
+            var tspPath = preorder.Distinct().ToList();
+            tspPath.Add(start); // return to start to form a cycle
+
+            // === Step 4: Compute total cost ===
+            int totalCost = 0;
+            for (int i = 0; i < tspPath.Count - 1; i++)
+            {
+                totalCost += graph.GetEdgeWeight(tspPath[i], tspPath[i + 1]);
+            }
+
+            // === Step 5: Output ===
+            Console.WriteLine($"Approximate TSP path: {string.Join(" -> ", tspPath)}");
+            Console.WriteLine($"Total cost: {totalCost}");
+
+            if (toDotPath != null)
+                GraphPrinter.ExportWithCycle(graph, tspPath, toDotPath);
         }
+
 
         /// <summary>
         /// Placeholder for genetic TSP algorithm (not implemented).

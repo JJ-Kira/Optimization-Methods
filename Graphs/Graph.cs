@@ -240,5 +240,83 @@
 
             return Vertices.Keys.All(v => inDegrees[v] == outDegrees[v]);
         }
+
+        /// <summary>
+        /// Adds a vertex to the graph by ID.
+        /// Does nothing if the vertex already exists.
+        /// </summary>
+        public void AddVertex(int id)
+        {
+            if (!Vertices.ContainsKey(id))
+                Vertices[id] = new Vertex(id);
+        }
+
+        /// <summary>
+        /// Computes the Minimum Spanning Tree (MST) using Kruskal's algorithm.
+        ///
+        /// 👣 Step-by-step:
+        /// 1. Initialize each vertex as its own disjoint set (Union-Find structure).
+        /// 2. Sort all edges in increasing order of weight.
+        /// 3. Traverse edges in that order:
+        ///     - If the edge connects two different components (i.e., no cycle),
+        ///       add it to the MST and union their sets.
+        ///     - If it would create a cycle, skip it.
+        /// 4. Stop once MST contains exactly (V - 1) edges.
+        /// 
+        /// 📌 Works only for logically undirected graphs with positive weights.
+        /// 📌 Returns the MST as a list of edges.
+        /// </summary>
+        public List<Edge> MinimumSpanningTree()
+        {
+            if (IsDirectedLogical)
+                throw new InvalidOperationException("MST is only valid for undirected graphs.");
+            if (!AllEdgesPositive())
+                throw new InvalidOperationException("MST requires all edge weights to be non-negative.");
+
+            var result = new List<Edge>();
+
+            // === Step 1: MakeSet — each vertex is its own parent ===
+            var parent = Vertices.Keys.ToDictionary(v => v, v => v);
+
+            // Finds the root of the component containing x (with path compression)
+            int Find(int x)
+            {
+                if (parent[x] != x)
+                    parent[x] = Find(parent[x]);
+                return parent[x];
+            }
+
+            // Unites the components of x and y
+            void Union(int x, int y)
+            {
+                int rootX = Find(x);
+                int rootY = Find(y);
+                if (rootX != rootY)
+                    parent[rootX] = rootY;
+            }
+
+            // === Step 2: Sort all edges by weight (ascending) ===
+            // To avoid adding both directions in undirected graphs, only keep one direction: From < To
+            var sortedEdges = Edges
+                .Where(e => e.From < e.To)
+                .OrderBy(e => e.Weight);
+
+            // === Step 3: Traverse sorted edges and build MST ===
+            foreach (var edge in sortedEdges)
+            {
+                if (Find(edge.From) != Find(edge.To))
+                {
+                    result.Add(edge);      // Step 3a: Add edge to MST
+                    Union(edge.From, edge.To); // Step 3b: Merge components
+                }
+
+                // Early stop: A valid MST has exactly (V - 1) edges
+                if (result.Count == Vertices.Count - 1)
+                    break;
+            }
+
+            return result;
+        }
+
     }
 }

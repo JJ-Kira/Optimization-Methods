@@ -21,6 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="TestData\komiwojazer2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="TestData\algorytm_wegierski1.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
