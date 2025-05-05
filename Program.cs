@@ -53,12 +53,14 @@ class Program
         var graphTSP = GraphParser.LoadGraphFromFile("TestData/komiwojazer1.txt");
         graphTSP.PrintGraph();
         TravelingSalesmanProblem.RunBranchAndBound(graphTSP, "komiwojazer-bb-output.dot");
+        TravelingSalesmanProblem.RunGenetic(graphTSP, "komiwojazer-ga1-output.dot");
 
         Console.WriteLine("----");
 
         graphTSP = GraphParser.LoadGraphFromFile("TestData/komiwojazer2.txt");
         graphTSP.PrintGraph();
         TravelingSalesmanProblem.RunMstApproximation(graphTSP, "komiwojazer-mst-output.dot");
+        TravelingSalesmanProblem.RunGenetic(graphTSP, "komiwojazer-ga2-output.dot");
 
 #endif
     }

@@ -232,11 +232,161 @@ namespace OptimizationMethods.Algorithms
 
 
         /// <summary>
-        /// Placeholder for genetic TSP algorithm (not implemented).
+        /// Approximates a solution to the Traveling Salesman Problem (TSP) using a Genetic Algorithm.
+        /// 
+        /// 📚 Genetic Algorithm workflow:
+        /// 1. Initialize a random population of valid TSP paths (chromosomes).
+        /// 2. Evaluate fitness (total path cost).
+        /// 3. Repeat for N generations:
+        ///     a. Select parent pairs (tournament selection).
+        ///     b. Apply crossover (PMX – Partially Mapped Crossover).
+        ///     c. Apply mutation (swap two cities with small probability).
+        ///     d. Add best solutions to next generation (elitism).
+        /// 4. Return the best path found.
+        /// 
+        /// ✅ Works on undirected graphs with triangle inequality (best performance).
         /// </summary>
         public static void RunGenetic(Graph graph, string? toDotPath = null)
         {
-            Console.WriteLine("Genetic TSP not yet implemented.");
+            const int populationSize = 100;
+            const int generations = 200;
+            const double mutationRate = 0.1;
+            const int tournamentSize = 5;
+            Random rng = new();
+
+            // === Step 1: Validate graph ===
+            if (graph.VertexCount < 3)
+            {
+                Console.WriteLine("TSP Genetic Algorithm requires at least 3 vertices.");
+                return;
+            }
+
+            if (!graph.IsConnected() || !graph.AllEdgesPositive())
+            {
+                Console.WriteLine("Graph must be connected and have positive edge weights.");
+                return;
+            }
+
+            var cities = graph.Vertices.Keys.ToList();
+            int cityCount = cities.Count;
+
+            // === Step 2: Generate initial population ===
+            List<List<int>> population = new();
+            for (int i = 0; i < populationSize; i++)
+            {
+                var tour = cities.OrderBy(_ => rng.Next()).ToList();
+                population.Add(tour);
+            }
+
+            // === Step 3: Evaluate fitness ===
+            int GetTourCost(List<int> tour)
+            {
+                int cost = 0;
+                for (int i = 0; i < tour.Count - 1; i++)
+                    cost += graph.GetEdgeWeight(tour[i], tour[i + 1]);
+                cost += graph.GetEdgeWeight(tour[^1], tour[0]); // return to start
+                return cost;
+            }
+
+            // === Step 4: Evolution loop ===
+            List<int> bestTour = population[0];
+            int bestCost = GetTourCost(bestTour);
+
+            for (int gen = 0; gen < generations; gen++)
+            {
+                List<List<int>> newPopulation = new();
+
+                // === Step 4a: Elitism (keep best) ===
+                var sortedPop = population.OrderBy(GetTourCost).ToList();
+                newPopulation.Add(new List<int>(sortedPop[0]));
+                if (GetTourCost(sortedPop[0]) < bestCost)
+                {
+                    bestCost = GetTourCost(sortedPop[0]);
+                    bestTour = new List<int>(sortedPop[0]);
+                }
+
+                // === Step 4b: Selection and Crossover ===
+                while (newPopulation.Count < populationSize)
+                {
+                    var parent1 = TournamentSelect(population, GetTourCost, tournamentSize, rng);
+                    var parent2 = TournamentSelect(population, GetTourCost, tournamentSize, rng);
+                    var child = PmxCrossover(parent1, parent2, rng);
+
+                    // === Step 4c: Mutation ===
+                    if (rng.NextDouble() < mutationRate)
+                        SwapMutation(child, rng);
+
+                    newPopulation.Add(child);
+                }
+
+                population = newPopulation;
+            }
+
+            // === Step 5: Output result ===
+            bestTour.Add(bestTour[0]); // complete cycle
+            Console.WriteLine($"Best TSP path (Genetic): {string.Join(" -> ", bestTour)}");
+            Console.WriteLine($"Total cost: {bestCost}");
+
+            if (toDotPath != null)
+                GraphPrinter.ExportWithCycle(graph, bestTour, toDotPath);
         }
+
+        /// <summary>
+        /// Selects a parent using tournament selection.
+        /// Picks k individuals at random and returns the best.
+        /// </summary>
+        private static List<int> TournamentSelect(List<List<int>> population, Func<List<int>, int> costFunc, int k, Random rng)
+        {
+            var candidates = population.OrderBy(_ => rng.Next()).Take(k).ToList();
+            return candidates.OrderBy(costFunc).First();
+        }
+
+        /// <summary>
+        /// Applies Partially Mapped Crossover (PMX) to two parents to create a child.
+        /// Preserves relative order and positions.
+        /// </summary>
+        private static List<int> PmxCrossover(List<int> parent1, List<int> parent2, Random rng)
+        {
+            int size = parent1.Count;
+            int start = rng.Next(size);
+            int end = rng.Next(start + 1, size + 1);
+
+            var child = new int[size];
+            Array.Fill(child, -1);
+
+            // === Step 1: Copy slice from parent1 ===
+            for (int i = start; i < end; i++)
+                child[i] = parent1[i];
+
+            // === Step 2: Map remaining genes from parent2 ===
+            for (int i = start; i < end; i++)
+            {
+                if (!child.Contains(parent2[i]))
+                {
+                    int pos = i;
+                    while (child[pos] != -1)
+                        pos = parent2.IndexOf(parent1[pos]);
+                    child[pos] = parent2[i];
+                }
+            }
+
+            // === Step 3: Fill remaining positions from parent2 ===
+            for (int i = 0; i < size; i++)
+                if (child[i] == -1)
+                    child[i] = parent2[i];
+
+            return child.ToList();
+        }
+
+        /// <summary>
+        /// Applies swap mutation to a tour: randomly swaps two cities.
+        /// </summary>
+        private static void SwapMutation(List<int> tour, Random rng)
+        {
+            int i = rng.Next(tour.Count);
+            int j = rng.Next(tour.Count);
+            (tour[i], tour[j]) = (tour[j], tour[i]);
+        }
+
     }
 }
