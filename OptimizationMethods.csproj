@@ -14,6 +14,7 @@
     <None Remove="TestData\euler-yes.txt" />
     <None Remove="TestData\graph_coloring.txt" />
     <None Remove="TestData\hungarian-graph.txt" />
+    <None Remove="TestData\komiwojazer.txt" />
     <None Remove="TestData\komiwojazer1.txt" />
     <None Remove="TestData\maksymalne_skojarzenie1.txt" />
     <None Remove="TestData\maksymalne_skojarzenie2.txt" />
@@ -23,6 +24,9 @@
 
   <ItemGroup>
     <Content Include="TestData\graph_coloring.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\komiwojazer.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="TestData\komiwojazer2.txt">

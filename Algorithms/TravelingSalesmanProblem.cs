@@ -154,7 +154,7 @@ namespace OptimizationMethods.Algorithms
         ///
         /// MST składa się zawsze z dokładnie (V - 1) krawędzi, gdzie V to liczba wierzchołków.
         /// W grafie z unikalnymi wagami krawędzi MST jest jednoznaczne.
-
+        ///TODO: Check why not better results
         /// </summary>
         public static void RunMstApproximation(Graph graph, string? toDotPath = null)
         {
@@ -192,7 +192,7 @@ namespace OptimizationMethods.Algorithms
 
             // === Step 2: Preorder traversal of MST (DFS) ===
             // This simulates a walk around the tree that visits each node.
-            var start = mstGraph.Vertices.Keys.First();
+            var start = mstGraph.Vertices.Keys.Last();
             var preorder = new List<int>();
             var visited = new HashSet<int>();
 
@@ -249,7 +249,7 @@ namespace OptimizationMethods.Algorithms
         public static void RunGenetic(Graph graph, string? toDotPath = null)
         {
             const int populationSize = 100;
-            const int generations = 200;
+            const int generations = 3;
             const double mutationRate = 0.1;
             const int tournamentSize = 5;
             Random rng = new();
