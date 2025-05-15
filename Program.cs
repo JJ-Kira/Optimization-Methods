@@ -2,8 +2,8 @@
 //#define MM
 //#define HUNGARY
 //#define TSP
-#define COLOR
-
+//#define COLOR
+#define KNAPSACK
 
 using OptimizationMethods.Algorithms;
 using OptimizationMethods.Graphs;
@@ -76,6 +76,19 @@ class Program
         GraphPrinter.ExportWithColoring(graphC, coloringResult.VertexColors, "graph-coloring-output.dot");
 
         Console.WriteLine("-----------------");
+#endif
+#if KNAPSACK
+        var values = new List<float> { 2f, 7f, 6f, 3f, 4f, 5f };
+        var weights = new List<float> { 1f, 2f, 3f, 5f, 1f, 3f };
+        float capacity = 5f;
+
+        var selected = HorowitzSahniKnapsack.Solve(values, weights, capacity);
+        Console.WriteLine("Selected item indices:");
+        foreach (var index in selected)
+            Console.WriteLine($"Item {index} -> Value: {values[index]}, Weight: {weights[index]}");
+
+        float total = selected.Sum(i => values[i]);
+        Console.WriteLine($"Total value: {total}");
 #endif
     }
 }
