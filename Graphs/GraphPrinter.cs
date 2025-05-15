@@ -137,5 +137,43 @@ namespace OptimizationMethods.Graphs
             File.WriteAllText(path, sb.ToString());
             Console.WriteLine($"DOT output with cycle saved to: {Path.GetFullPath(path)}");
         }
+
+        /// <summary>
+        /// Exports the graph with colored vertices using Graph Coloring result.
+        /// </summary>
+        public static void ExportWithColoring(Graph graph, Dictionary<int, int> vertexColors, string path)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(graph.IsDirectedLogical ? "digraph G {" : "graph G {");
+            string conn = graph.IsDirectedLogical ? "->" : "--";
+
+            // Assign color styles to vertices
+            foreach (var vertex in graph.Vertices.Values)
+            {
+                int color = vertexColors.TryGetValue(vertex.Id, out int c) ? c : -1;
+                string colorAttr = color != -1 ? $" [style=filled, fillcolor=\"/pastel19/{color % 8 + 1}\"]" : "";
+                sb.AppendLine($"    {vertex.Id}{colorAttr};");
+            }
+
+            // Add edges
+            var added = new HashSet<string>();
+            foreach (var edge in graph.Edges)
+            {
+                string key = graph.IsDirectedLogical
+                    ? $"{edge.From}->{edge.To}"
+                    : string.Join("--", new[] { edge.From, edge.To }.OrderBy(x => x));
+
+                if (!added.Contains(key))
+                {
+                    added.Add(key);
+                    sb.AppendLine($"    {edge.From} {conn} {edge.To} [label=\"{edge.Weight}\"];");
+                }
+            }
+
+            sb.AppendLine("}");
+            File.WriteAllText(path, sb.ToString());
+            Console.WriteLine($"DOT file with coloring written to: {Path.GetFullPath(path)}");
+        }
+
     }
 }

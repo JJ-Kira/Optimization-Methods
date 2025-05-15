@@ -1,7 +1,9 @@
 ﻿//#define EULER
 //#define MM
 //#define HUNGARY
-#define TSP
+//#define TSP
+#define COLOR
+
 
 using OptimizationMethods.Algorithms;
 using OptimizationMethods.Graphs;
@@ -61,7 +63,19 @@ class Program
         graphTSP.PrintGraph();
         TravelingSalesmanProblem.RunMstApproximation(graphTSP, "komiwojazer-mst-output.dot");
         TravelingSalesmanProblem.RunGenetic(graphTSP, "komiwojazer-ga2-output.dot");
+#endif
+#if COLOR
+        var graphC = GraphParser.LoadGraphFromFile("TestData/graph_coloring.txt");
+        graphC.PrintGraph();
+        var coloringResult = GraphColoring.Color(graphC);
+        Console.WriteLine($"Used {coloringResult.NumberOfColorsUsed} colors.");
 
+        foreach (var kv in coloringResult.VertexColors.OrderBy(k => k.Key))
+            Console.WriteLine($"Vertex {kv.Key} -> Color {kv.Value}");
+
+        GraphPrinter.ExportWithColoring(graphC, coloringResult.VertexColors, "graph-coloring-output.dot");
+
+        Console.WriteLine("-----------------");
 #endif
     }
 }
