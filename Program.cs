@@ -1,9 +1,9 @@
 ﻿//#define EULER
-//#define MM
+#define MM
 //#define HUNGARY
 //#define TSP
 //#define COLOR
-#define KNAPSACK
+//#define KNAPSACK
 
 using OptimizationMethods.Algorithms;
 using OptimizationMethods.Graphs;
@@ -25,21 +25,14 @@ class Program
         Console.WriteLine("-----------------");
 #endif
 #if MM
-        var graphM = GraphParser.LoadGraphFromFile("TestData/maksymalne_skojarzenie2.txt");
+        // Load graph and infer initial matching from weight > 1 edges
+        var (graphM, initialMatching) = GraphParser.LoadGraphAndInitialMatching("TestData/maksymalne_skojarzenie2.txt");
+        // Print for inspection
         graphM.PrintGraph();
+        // Run without initial matching (pure algorithm)
         MaximumMatching.RunAndPrint(graphM, toDotPath: "max-output2.dot");
-
-        var initialMatching = new Dictionary<int, int>
-        {
-            { 1, 5 },
-            { 5, 1 },
-            { 2, 6 },
-            { 6, 2 }
-        };
-
-        // === Call with initial matching ===
+        // Run with initial matching from file weights (e.g. weight == 2)
         MaximumMatching.RunAndPrint(graphM, initialMatching: initialMatching, toDotPath: "max-output.dot");
-
 
         Console.WriteLine("-----------------");
 #endif
@@ -52,17 +45,11 @@ class Program
         Console.WriteLine("-----------------");
 #endif
 #if TSP
-        var graphTSP = GraphParser.LoadGraphFromFile("TestData/komiwojazer1.txt");
+        var graphTSP = GraphParser.LoadGraphFromFile("TestData/komiwojazer.txt");
         graphTSP.PrintGraph();
         TravelingSalesmanProblem.RunBranchAndBound(graphTSP, "komiwojazer-bb-output.dot");
-        TravelingSalesmanProblem.RunGenetic(graphTSP, "komiwojazer-ga1-output.dot");
-
-        Console.WriteLine("----");
-
-        graphTSP = GraphParser.LoadGraphFromFile("TestData/komiwojazer2.txt");
-        graphTSP.PrintGraph();
         TravelingSalesmanProblem.RunMstApproximation(graphTSP, "komiwojazer-mst-output.dot");
-        TravelingSalesmanProblem.RunGenetic(graphTSP, "komiwojazer-ga2-output.dot");
+        TravelingSalesmanProblem.RunGenetic(graphTSP, "komiwojazer-ga1-output.dot");
 #endif
 #if COLOR
         var graphC = GraphParser.LoadGraphFromFile("TestData/graph_coloring.txt");
@@ -89,6 +76,8 @@ class Program
 
         float total = selected.Sum(i => values[i]);
         Console.WriteLine($"Total value: {total}");
+
+        Console.WriteLine("-----------------");
 #endif
     }
 }
