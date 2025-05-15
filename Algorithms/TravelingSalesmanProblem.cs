@@ -154,7 +154,6 @@ namespace OptimizationMethods.Algorithms
         ///
         /// MST składa się zawsze z dokładnie (V - 1) krawędzi, gdzie V to liczba wierzchołków.
         /// W grafie z unikalnymi wagami krawędzi MST jest jednoznaczne.
-        ///TODO: Check why not better results
         /// </summary>
         public static void RunMstApproximation(Graph graph, string? toDotPath = null)
         {
@@ -180,56 +179,68 @@ namespace OptimizationMethods.Algorithms
             Console.WriteLine("Running MST-based approximation for TSP...");
 
             // === Step 1: Build Minimum Spanning Tree (MST) ===
-            // This gives us a tree that connects all nodes with minimal total weight.
             var mstEdges = graph.MinimumSpanningTree();
 
-            // Build a new graph from the MST edges
             var mstGraph = new Graph(isDirectedLogical: false);
             foreach (var vertex in graph.Vertices.Values)
                 mstGraph.AddVertex(vertex.Id);
             foreach (var edge in mstEdges)
                 mstGraph.AddEdge(edge.From, edge.To, edge.Weight);
 
-            // === Step 2: Preorder traversal of MST (DFS) ===
-            // This simulates a walk around the tree that visits each node.
-            var start = mstGraph.Vertices.Keys.Last();
-            var preorder = new List<int>();
-            var visited = new HashSet<int>();
+            // === Step 2: Preorder traversals from all start vertices ===
+            // ✅ Improvement: DFS is now executed from every possible start node, not just the first.
+            int bestTotalCost = int.MaxValue;
+            List<int>? bestTspPath = null;
 
-            void Dfs(int v)
+            foreach (var start in mstGraph.Vertices.Keys)
             {
-                preorder.Add(v);
-                visited.Add(v);
+                var preorder = new List<int>();
+                var visited = new HashSet<int>();
 
-                foreach (var neighbor in mstGraph.Vertices[v].Neighbors)
+                void Dfs(int v)
                 {
-                    if (!visited.Contains(neighbor))
-                        Dfs(neighbor);
+                    preorder.Add(v);
+                    visited.Add(v);
+
+                    // ⚠️ Default neighbor order is non-deterministic and ignores edge weights.
+                    // ✅ Improvement: Sorting neighbors by edge weight ensures consistent and cost-aware DFS traversal.
+                    var sortedNeighbors = mstGraph.Vertices[v].Neighbors
+                        .OrderBy(n => mstGraph.GetEdgeWeight(v, n));
+                    foreach (var neighbor in sortedNeighbors)
+                    {
+                        if (!visited.Contains(neighbor))
+                            Dfs(neighbor);
+                    }
+                }
+
+                Dfs(start);
+
+                // === Step 3: Shortcutting — remove revisits ===
+                // ✅ Improvement: Shortcutting is retained via Distinct(), eliminating revisits from DFS traversal.
+                var tspPath = preorder.Distinct().ToList();
+                tspPath.Add(start); // return to start
+
+                // === Step 4: Compute total cost of tour ===
+                // ✅ Improvement: Total cost is now calculated using the original graph’s weights, not MST weights.
+                int totalCost = 0;
+                for (int i = 0; i < tspPath.Count - 1; i++)
+                    totalCost += graph.GetEdgeWeight(tspPath[i], tspPath[i + 1]);
+
+                // ✅ Improvement: Among all starting nodes, the lowest-cost tour is selected as the final path.
+                if (totalCost < bestTotalCost)
+                {
+                    bestTotalCost = totalCost;
+                    bestTspPath = tspPath;
                 }
             }
 
-            Dfs(start); // start DFS from any vertex
-
-            // === Step 3: Shortcutting — skip repeated vertices ===
-            // This builds a Hamiltonian path visiting all nodes once.
-            var tspPath = preorder.Distinct().ToList();
-            tspPath.Add(start); // return to start to form a cycle
-
-            // === Step 4: Compute total cost ===
-            int totalCost = 0;
-            for (int i = 0; i < tspPath.Count - 1; i++)
-            {
-                totalCost += graph.GetEdgeWeight(tspPath[i], tspPath[i + 1]);
-            }
-
             // === Step 5: Output ===
-            Console.WriteLine($"Approximate TSP path: {string.Join(" -> ", tspPath)}");
-            Console.WriteLine($"Total cost: {totalCost}");
+            Console.WriteLine($"Approximate TSP path: {string.Join(" -> ", bestTspPath)}");
+            Console.WriteLine($"Total cost: {bestTotalCost}");
 
             if (toDotPath != null)
-                GraphPrinter.ExportWithCycle(graph, tspPath, toDotPath);
+                GraphPrinter.ExportWithCycle(graph, bestTspPath, toDotPath);
         }
-
 
         /// <summary>
         /// Approximates a solution to the Traveling Salesman Problem (TSP) using a Genetic Algorithm.

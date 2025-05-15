@@ -1,7 +1,7 @@
 ﻿//#define EULER
-#define MM
+//#define MM
 //#define HUNGARY
-//#define TSP
+#define TSP
 //#define COLOR
 //#define KNAPSACK
 
@@ -25,9 +25,7 @@ class Program
         Console.WriteLine("-----------------");
 #endif
 #if MM
-        // Load graph and infer initial matching from weight > 1 edges
         var (graphM, initialMatching) = GraphParser.LoadGraphAndInitialMatching("TestData/maksymalne_skojarzenie2.txt");
-        // Print for inspection
         graphM.PrintGraph();
         // Run without initial matching (pure algorithm)
         MaximumMatching.RunAndPrint(graphM, toDotPath: "max-output2.dot");
