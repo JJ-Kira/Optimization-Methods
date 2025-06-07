@@ -1,7 +1,7 @@
 ﻿//#define EULER
-//#define MM
+#define MM
 //#define HUNGARY
-#define TSP
+//#define TSP
 //#define COLOR
 //#define KNAPSACK
 
@@ -25,7 +25,7 @@ class Program
         Console.WriteLine("-----------------");
 #endif
 #if MM
-        var (graphM, initialMatching) = GraphParser.LoadGraphAndInitialMatching("TestData/maksymalne_skojarzenie2.txt");
+        var (graphM, initialMatching) = GraphParser.LoadGraphAndInitialMatching("TestData/maksymalne_skojarzenie1.txt");
         graphM.PrintGraph();
         // Run without initial matching (pure algorithm)
         MaximumMatching.RunAndPrint(graphM, toDotPath: "max-output2.dot");
@@ -63,8 +63,8 @@ class Program
         Console.WriteLine("-----------------");
 #endif
 #if KNAPSACK
-        var values = new List<float> { 2f, 7f, 6f, 3f, 4f, 5f };
-        var weights = new List<float> { 1f, 2f, 3f, 5f, 1f, 3f };
+        var values = new List<float> { 4f, 3f, 6f, 4f };
+        var weights = new List<float> { 1f, 2f, 5f, 4f };
         float capacity = 5f;
 
         var selected = HorowitzSahniKnapsack.Solve(values, weights, capacity);

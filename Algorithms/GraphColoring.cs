@@ -33,16 +33,26 @@ namespace OptimizationMethods.Algorithms
         public static GraphColoringResult Color(Graph graph)
         {
             const int NotColored = -1;
+
+            // ======== CHECK FOR BIPARTITE FIRST =========
+            if (graph.IsBipartite(out var leftPartition))
+            {
+                var bipartiteColors = graph.Vertices.Keys.ToDictionary(
+                    v => v,
+                    v => leftPartition.Contains(v) ? 0 : 1
+                );
+
+                return new GraphColoringResult(bipartiteColors, 2);
+            }
+
+            // ======== FALLBACK: APPROXIMATION ===========
             int colorIndex = 0;
             int totalVertices = graph.VertexCount;
 
-            // Initialize color map
             var colors = graph.Vertices.Keys.ToDictionary(v => v, _ => NotColored);
-
-            // Track which vertices still need processing
             var unprocessed = new HashSet<int>();
 
-            // === Step 1: Color isolated vertices immediately ===
+            // Color isolated vertices immediately
             foreach (var vertex in graph.Vertices.Values)
             {
                 if (vertex.Neighbors.Count == 0)
@@ -58,14 +68,12 @@ namespace OptimizationMethods.Algorithms
             if (colors.Values.Contains(colorIndex))
                 colorIndex++;
 
-            // === Step 2: Process remaining vertices using independent sets ===
             var workingGraph = CloneGraphStructure(graph);
 
             while (unprocessed.Count > 0)
             {
                 var independentSet = FindApproximateIndependentSet(workingGraph, unprocessed);
 
-                // Color and disconnect them
                 foreach (int v in independentSet)
                 {
                     colors[v] = colorIndex;
@@ -87,24 +95,17 @@ namespace OptimizationMethods.Algorithms
         {
             var result = new List<int>();
             var remaining = new HashSet<int>(candidates);
-            var blocked = new HashSet<int>();
 
-            while (remaining.Except(blocked).Any())
+            while (remaining.Count > 0)
             {
-                // Pick vertex with minimal degree among non-blocked ones
-                int selected = remaining
-                    .Except(blocked)
-                    .OrderBy(v => graph.Vertices[v].Neighbors.Count)
-                    .First();
+                // Choose vertex with fewest neighbors *within remaining*
+                int best = remaining.OrderBy(v => graph.Vertices[v].Neighbors.Count(n => remaining.Contains(n))).First();
+                result.Add(best);
 
-                result.Add(selected);
-
-                // Block all its neighbors from being picked in this round
-                foreach (int neighbor in graph.Vertices[selected].Neighbors)
-                    blocked.Add(neighbor);
-
-                // Mark selected as processed too
-                blocked.Add(selected);
+                // Remove the vertex and all its neighbors
+                remaining.Remove(best);
+                foreach (var neighbor in graph.Vertices[best].Neighbors)
+                    remaining.Remove(neighbor);
             }
 
             return result;

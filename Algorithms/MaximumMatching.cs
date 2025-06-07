@@ -39,7 +39,7 @@ namespace OptimizationMethods.Algorithms
         /// </summary>
         public static Dictionary<int, int> FindMaximumMatching(Graph graph, List<int>? leftPartition = null, Dictionary<int, int>? initialMatching = null)
         {
-            // === Step 1: Check bipartiteness and determine partition if needed ===
+            // === Step 1: Check bipartiteness and get partition ===
             if (!graph.IsBipartite(out var autoPartition))
                 throw new InvalidOperationException("Graph is not bipartite.");
 
@@ -50,43 +50,39 @@ namespace OptimizationMethods.Algorithms
                 Console.WriteLine(string.Join(", ", leftPartition));
             }
 
-            // === Step 2: Initialize matching ===
+            // === Step 2: Initialize matching (M = ∅ or from input) ===
+            match = new Dictionary<int, int>();
+            foreach (var v in graph.Vertices.Keys)
+                match[v] = -1;
+
             if (initialMatching != null)
             {
-                match = new Dictionary<int, int>(initialMatching);
-
-                // Add missing vertices
-                foreach (var v in graph.Vertices.Keys)
-                {
-                    if (!match.ContainsKey(v))
-                        match[v] = -1;
-                }
-            }
-            else
-            {
-                match = new Dictionary<int, int>();
-                foreach (var v in graph.Vertices.Keys)
-                    match[v] = -1;
+                foreach (var kvp in initialMatching)
+                    match[kvp.Key] = kvp.Value;
             }
 
             bool pathFound;
 
-            // === Step 3: Repeat while augmenting path is found ===
+            // === Step 3: Repeat until no augmenting path exists ===
             do
             {
                 pathFound = false;
-                visited = new HashSet<int>();
 
-                // 🔥 Corrected: Try augmenting from EVERY vertex in leftPartition
+                // Step 3a: For each unmatched vertex in the left partition
                 foreach (int u in leftPartition)
                 {
-                    if (FindAugmentingPath(graph, u))
-                        pathFound = true;
+                    if (match[u] == -1) // Only attempt DFS if unmatched
+                    {
+                        var visited = new HashSet<int>();  // fresh visited set for each attempt
+                                                           // Step 3b: Try to find an augmenting path starting at u
+                        if (FindAugmentingPath(graph, u, visited))
+                            pathFound = true;
+                    }
                 }
 
-            } while (pathFound);
+            } while (pathFound);  // Step 3c: Repeat if any path was found
 
-            // Return only unique pairs
+            // === Step 4: Return unique match pairs (u < v) ===
             return match.Where(p => p.Key < p.Value)
                         .ToDictionary(p => p.Key, p => p.Value);
         }
@@ -94,27 +90,37 @@ namespace OptimizationMethods.Algorithms
         /// <summary>
         /// Szuka ścieżki powiększającej z danego wierzchołka.
         /// </summary>
-        private static bool FindAugmentingPath(Graph graph, int u)
+        /// <summary>
+        /// Step 3b: Recursively tries to find an augmenting path starting from u
+        /// </summary>
+        /// <summary>
+        /// Step 3b: Recursively tries to find an augmenting path starting from u
+        /// </summary>
+        private static bool FindAugmentingPath(Graph graph, int u, HashSet<int> visited)
         {
             if (visited.Contains(u)) return false;
-            visited.Add(u);
+            visited.Add(u); // Moved visited logic here for localized marking
 
             foreach (int v in graph.Vertices[u].Neighbors)
             {
-                if (match[v] == -1 || FindAugmentingPath(graph, match[v]))
+                // Step 3b(i): If v is unmatched or its current match can be re-matched recursively
+                if (match[v] == -1 || FindAugmentingPath(graph, match[v], visited))
                 {
+                    // Step 3b(ii): Match u and v
                     match[u] = v;
                     match[v] = u;
                     return true;
                 }
             }
 
+            // Step 3b(iii): No augmenting path found from u
             return false;
         }
 
         /// <summary>
         /// Uruchamia algorytm i wypisuje maksymalne skojarzenie.
         /// Opcjonalnie można podać lewą partycję i początkowe skojarzenie.
+        /// TODO: brakuje jednej krawędzi w rozwiązaniu
         /// </summary>
         public static void RunAndPrint(Graph graph, List<int>? leftPartition = null, Dictionary<int, int>? initialMatching = null, string? toDotPath = null)
         {
